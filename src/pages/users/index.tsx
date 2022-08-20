@@ -1,4 +1,5 @@
 import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, useBreakpointValue } from "@chakra-ui/react";
+import Link from "next/link";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import Header from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
@@ -44,27 +45,31 @@ export default function Users() {
 
                         {isWideVersion
                             ?
-                            <Button
-                                as='a'
-                                size='sm'
-                                fontSize='sm'
-                                colorScheme='pink'
-                                leftIcon={<Icon as={RiAddLine} fontSize='20' />}
-                            >
-                                Criar novo usuário
-                            </Button>
-
-                            :
-                            <Tooltip label='Criar novo usuário'>
+                            <Link href="/users/create" passHref>
                                 <Button
                                     as='a'
                                     size='sm'
                                     fontSize='sm'
                                     colorScheme='pink'
                                     leftIcon={<Icon as={RiAddLine} fontSize='20' />}
-                                    iconSpacing={0}
-                                ></Button>
-                            </Tooltip>
+                                >
+                                    Criar novo usuário
+                                </Button>
+                            </Link>
+
+                            :
+                            <Link href="/users/create" passHref>
+                                <Tooltip label='Criar novo usuário'>
+                                    <Button
+                                        as='a'
+                                        size='sm'
+                                        fontSize='sm'
+                                        colorScheme='pink'
+                                        leftIcon={<Icon as={RiAddLine} fontSize='20' />}
+                                        iconSpacing={0}
+                                    ></Button>
+                                </Tooltip>
+                            </Link>
                         }
                     </Flex>
 
