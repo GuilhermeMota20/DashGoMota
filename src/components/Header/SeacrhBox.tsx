@@ -1,7 +1,19 @@
 import { Flex, Icon, Input } from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 
+// debounce = evitar chamada enquanto a pessoa estiver digitando;
+
+// 1. Controlled components = controle de componentes atraves de estados;
+    // const [search, setSearch] = useState('');
+    // input: value={search}
+    // input: onChange={event => setSearch(event.target.value)}
+
+// 2. Uncontrolled components = interativa vs declarativa
+    // const searchInputRef = useRef<HTMLInputElement>(null);
+    // input: ref={searchInputRef}
+
 export function SearchBox() {
+
     return (
         <Flex
             as='label'
