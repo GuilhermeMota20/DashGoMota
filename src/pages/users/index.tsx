@@ -1,16 +1,40 @@
-import { Box, Button, Checkbox, Flex, Heading, Icon, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, useBreakpointValue } from "@chakra-ui/react";
+import { Box, Button, Checkbox, Flex, Heading, Icon, Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, useBreakpointValue } from "@chakra-ui/react";
 import Link from "next/link";
+import { useEffect } from "react";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import Header from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import Sidebar from "../../components/Sidebar";
+import { useQuery } from 'react-query';
+import { api } from "../../services/api";
 
 export default function Users() {
+
+    const { data, isLoading, isFetching, error } = useQuery('users', async () => {
+        const { data } = await api.get('users');
+
+        const users = data.users.map(user => {
+            return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                created_at: new Date(user.created_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                })
+            }
+        });
+
+        return users;
+    }, {
+        staleTime: 1000 * 5, // 5 seconds
+    });
 
     const isWideVersion = useBreakpointValue({
         base: false,
         lg: true,
-    })
+    });
 
     return (
         <Box>
@@ -41,6 +65,8 @@ export default function Users() {
                             fontWeight='normal'
                         >
                             Usuários
+
+                            { !isLoading && isFetching && <Spinner size='sm' color='gray.500' ml='4' /> }
                         </Heading>
 
                         {isWideVersion
@@ -73,134 +99,75 @@ export default function Users() {
                         }
                     </Flex>
 
-                    <Table colorScheme='whiteAlpha'>
-                        <Thead>
-                            <Tr>
-                                <Th px={['4', '4', '6']} color='gray.300' w='8' >
-                                    <Checkbox colorScheme='pink' />
-                                </Th>
-                                <Th>Usuário</Th>
-                                {isWideVersion && <Th>Data de cadastro</Th>}
-                                <Th w='8'></Th>
-                            </Tr>
-                        </Thead>
-                        <Tbody>
-                            <Tr>
-                                <Td px={['4', '4', '6']}  > <Checkbox colorScheme='pink' /> </Td>
-                                <Td>
-                                    <Box>
-                                        <Text fontWeight='bold' >Guilherme Mota</Text>
-                                        <Text fontSize='sm' color='gray.300' >motas6617@gmail.com</Text>
-                                    </Box>
-                                </Td>
-                                {isWideVersion && <Td>05/07/2022</Td>}
+                    {isLoading ? (
+                        <Flex justify='center'>
+                            <Spinner />
+                        </Flex>
+                    ) : error ? (
+                        <Flex justify='center'>
+                            <Text>Ocorreu um erro ao obter os dados de usuarios.</Text>
+                        </Flex>
+                    ) : (
+                        <>
+                            <Table colorScheme='whiteAlpha'>
+                                <Thead>
+                                    <Tr>
+                                        <Th px={['4', '4', '6']} color='gray.300' w='8' >
+                                            <Checkbox colorScheme='pink' />
+                                        </Th>
+                                        <Th>Usuário</Th>
+                                        {isWideVersion && <Th>Data de cadastro</Th>}
+                                        <Th w='8'></Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {data.map(user => {
+                                        return (
+                                            <Tr key={user.id}>
+                                                <Td px={['4', '4', '6']}  > <Checkbox colorScheme='pink' /> </Td>
+                                                <Td>
+                                                    <Box>
+                                                        <Text fontWeight='bold' >{user.name}</Text>
+                                                        <Text fontSize='sm' color='gray.300' >{user.email}</Text>
+                                                    </Box>
+                                                </Td>
+                                                {isWideVersion && <Td>{user.created_at}</Td>}
 
-                                <Td>
-                                    {isWideVersion
-                                        ?
-                                        <Button
-                                            as='a'
-                                            size='sm'
-                                            fontSize='sm'
-                                            colorScheme='purple'
-                                            leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
-                                        >
-                                            Editar
-                                        </Button>
+                                                <Td>
+                                                    {isWideVersion
+                                                        ?
+                                                        <Button
+                                                            as='a'
+                                                            size='sm'
+                                                            fontSize='sm'
+                                                            colorScheme='purple'
+                                                            leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
+                                                        >
+                                                            Editar
+                                                        </Button>
 
-                                        :
-                                        <Tooltip label='Editar usuário'>
-                                            <Button
-                                                as='a'
-                                                size='sm'
-                                                fontSize='sm'
-                                                colorScheme='purple'
-                                                leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
-                                                iconSpacing={0}
-                                            ></Button>
-                                        </Tooltip>
-                                    }
-                                </Td>
-                            </Tr>
-                            <Tr>
-                                <Td px={['4', '4', '6']}  > <Checkbox colorScheme='pink' /> </Td>
-                                <Td>
-                                    <Box>
-                                        <Text fontWeight='bold' >Guilherme Mota</Text>
-                                        <Text fontSize='sm' color='gray.300' >motas6617@gmail.com</Text>
-                                    </Box>
-                                </Td>
-                                {isWideVersion && <Td>05/07/2022</Td>}
+                                                        :
+                                                        <Tooltip label='Editar usuário'>
+                                                            <Button
+                                                                as='a'
+                                                                size='sm'
+                                                                fontSize='sm'
+                                                                colorScheme='purple'
+                                                                leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
+                                                                iconSpacing={0}
+                                                            ></Button>
+                                                        </Tooltip>
+                                                    }
+                                                </Td>
+                                            </Tr>
+                                        )
+                                    })}
+                                </Tbody>
+                            </Table>
 
-                                <Td>
-                                    {isWideVersion
-                                        ?
-                                        <Button
-                                            as='a'
-                                            size='sm'
-                                            fontSize='sm'
-                                            colorScheme='purple'
-                                            leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
-                                        >
-                                            Editar
-                                        </Button>
-
-                                        :
-                                        <Tooltip label='Editar usuário'>
-                                            <Button
-                                                as='a'
-                                                size='sm'
-                                                fontSize='sm'
-                                                colorScheme='purple'
-                                                leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
-                                                iconSpacing={0}
-                                            ></Button>
-                                        </Tooltip>
-                                    }
-                                </Td>
-                            </Tr>
-                            <Tr>
-                                <Td px={['4', '4', '6']}  > <Checkbox colorScheme='pink' /> </Td>
-                                <Td>
-                                    <Box>
-                                        <Text fontWeight='bold' >Guilherme Mota</Text>
-                                        <Text fontSize='sm' color='gray.300' >motas6617@gmail.com</Text>
-                                    </Box>
-                                </Td>
-
-                                {isWideVersion && <Td>05/07/2022</Td>}
-
-                                <Td>
-                                    {isWideVersion
-                                        ?
-                                        <Button
-                                            as='a'
-                                            size='sm'
-                                            fontSize='sm'
-                                            colorScheme='purple'
-                                            leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
-                                        >
-                                            Editar
-                                        </Button>
-
-                                        :
-                                        <Tooltip label='Editar usuário'>
-                                            <Button
-                                                as='a'
-                                                size='sm'
-                                                fontSize='sm'
-                                                colorScheme='purple'
-                                                leftIcon={<Icon as={RiPencilLine} marginEnd='0' fontSize='16' />}
-                                                iconSpacing={0}
-                                            ></Button>
-                                        </Tooltip>
-                                    }
-                                </Td>
-                            </Tr>
-                        </Tbody>
-                    </Table>
-
-                    <Pagination />
+                            <Pagination />
+                        </>
+                    )}
                 </Box>
             </Flex>
         </Box>
