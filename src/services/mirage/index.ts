@@ -1,4 +1,4 @@
-import { createServer, Factory, Model } from 'miragejs';
+import { createServer, Factory, Model, Response } from 'miragejs';
 import faker from 'faker';
 
 type User = {
@@ -7,7 +7,7 @@ type User = {
     created_at: string;
 }
 
-export function makeServer(){
+export function makeServer() {
     const server = createServer({
         models: {
             user: Model.extend<Partial<User>>({}) // pega todos os dados do type User sem precisar declarar.
@@ -15,27 +15,44 @@ export function makeServer(){
 
         factories: {
             user: Factory.extend({
-                name(i: number){
+                name(i: number) {
                     return faker.name.findName(); //`User ${i + 1}` // User 1..2..3..4..
                 },
-                email(){
+                email() {
                     return faker.internet.email().toLowerCase();
                 },
-                created_at(){
+                created_at() {
                     return faker.date.recent(10)
                 },
             })
         },
 
         seeds(server) {
-            server.createList('user', 15);
+            server.createList('user', 150);
         },
 
         routes() {
             this.namespace = 'api';
             this.timing = 3500;
 
-            this.get('/users');
+            this.get('/users', function (schema, request) {
+                const { page = 1, per_page = 10 } = request.queryParams
+
+                const total = schema.all(`user`).length;
+
+                const pageStart = (Number(page) - 1) * Number(per_page);
+                const pageEnd = pageStart + Number(per_page);
+
+                const users = this.serialize(schema.all('user'))
+                    .users.slice(pageStart, pageEnd);
+
+                return new Response(
+                    200,
+                    { 'x-total-count': String(total) },
+                    { users }
+                );
+            });
+
             this.post('/users');
 
             this.namespace = '';
