@@ -1,11 +1,13 @@
-import { Box, Button, Checkbox, Flex, Heading, Icon, Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, useBreakpointValue } from "@chakra-ui/react";
-import Link from "next/link";
+import { Box, Button, Checkbox, Flex, Heading, Icon, Link, Spinner, Table, Tbody, Td, Text, Th, Thead, Tooltip, Tr, useBreakpointValue } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { useState } from "react";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import Header from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import Sidebar from "../../components/Sidebar";
+import { api } from "../../services/api";
 import { useUsers } from "../../services/hooks/useUsers";
+import { queryClient } from "../../services/queryClient";
 
 export default function Users() {
     const [page, setPage] = useState(1);
@@ -15,6 +17,16 @@ export default function Users() {
         base: false,
         lg: true,
     });
+
+    async function handlePrefetchUser(userId: string) {
+        await queryClient.prefetchQuery(['users', userId], async ()=> {
+            const response = await api.get(`users/${userId}`)
+
+            return response.data;
+        }, {
+            staleTime: 1000 * 60 * 10 // 10 minutes
+        })
+    };
 
     return (
         <Box>
@@ -51,7 +63,7 @@ export default function Users() {
 
                         {isWideVersion
                             ?
-                            <Link href="/users/create" passHref>
+                            <NextLink href="/users/create" passHref>
                                 <Button
                                     as='a'
                                     size='sm'
@@ -61,10 +73,10 @@ export default function Users() {
                                 >
                                     Criar novo usuário
                                 </Button>
-                            </Link>
+                            </NextLink>
 
                             :
-                            <Link href="/users/create" passHref>
+                            <NextLink href="/users/create" passHref>
                                 <Tooltip label='Criar novo usuário'>
                                     <Button
                                         as='a'
@@ -75,7 +87,7 @@ export default function Users() {
                                         iconSpacing={0}
                                     ></Button>
                                 </Tooltip>
-                            </Link>
+                            </NextLink>
                         }
                     </Flex>
 
@@ -107,7 +119,10 @@ export default function Users() {
                                                 <Td px={['4', '4', '6']}  > <Checkbox colorScheme='pink' /> </Td>
                                                 <Td>
                                                     <Box>
-                                                        <Text fontWeight='bold' >{user.name}</Text>
+                                                        <Link color="purple.400" onMouseEnter={()=> handlePrefetchUser(user.id)}>
+                                                            <Text fontWeight='bold' >{user.name}</Text>
+                                                        </Link>
+
                                                         <Text fontSize='sm' color='gray.300' >{user.email}</Text>
                                                     </Box>
                                                 </Td>
